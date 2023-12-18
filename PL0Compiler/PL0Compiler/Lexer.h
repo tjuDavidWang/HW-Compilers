@@ -26,6 +26,8 @@ enum State {
 // 符号类
 class Token {
 public:
+    Token():type(TokenType::UNKNOWN),value("") {}
+
     Token(TokenType type, std::string value) : type(type), value(value) {}
 
     TokenType getType() const { return type; }
@@ -50,6 +52,8 @@ public:
     
     // 获得下一个符号
     Token getNextToken();
+    int getLine() { return line; }
+    int getCol() { return col; }
 
 private:
     void advance() ;

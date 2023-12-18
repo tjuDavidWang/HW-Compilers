@@ -6,7 +6,7 @@
 #include <sstream>
 #include<stdexcept>
 #include"Lexer.h"
-
+#include"Parser.h"
 std::unordered_map<TokenType, std::string> tokenNames = {
     {PROGRAM, "PROGRAM"}, {VAR, "VAR"}, {CONST, "CONST"}, {BEGIN, "BEGIN"},
     {END, "END"}, {WHILE, "WHILE"}, {DO, "DO"}, {IF, "IF"}, {THEN, "THEN"},
@@ -23,7 +23,6 @@ int main() {
     // 指定源代码文件的路径
     std::string filePath = "source/source.pl0";
 
-    // 使用文件流对象读取文件
     std::ifstream file(filePath);
     if (!file.is_open()) {
         std::cerr << "failed to open: " << filePath << std::endl;
@@ -37,19 +36,24 @@ int main() {
 
     // 创建一个词法分析器实例
     Lexer lexer(sourceCode);
+    Parser parser(lexer);
+    bool flag=parser.BeginParse();
 
-    // 循环获取所有的Token，直到遇到文件结束符
-    Token token = lexer.getNextToken();
-    while (token.getType() != END_OF_FILE) {
-        // 使用映射表来获取Token类型的名称
-        std::string tokenName = tokenNames[token.getType()];
+    if (flag)std::cout << "语法分析成功" << std::endl;
 
-        // 打印Token的类型名称、类型和值
-        std::cout << "Token: " << tokenName << " (" << token.getType() << "), Value: " << token.getValue() << std::endl;
+    // 词法分析测试程序：
+    //// 循环获取所有的Token，直到遇到文件结束符
+    //Token token = lexer.getNextToken();
+    //while (token.getType() != END_OF_FILE) {
+    //    // 使用映射表来获取Token类型的名称
+    //    std::string tokenName = tokenNames[token.getType()];
 
-        // 获取下一个Token
-        token = lexer.getNextToken();
-    }
+    //    // 打印Token的类型名称、类型和值
+    //    std::cout << "Token: " << tokenName << " (" << token.getType() << "), Value: " << token.getValue() << std::endl;
+
+    //    // 获取下一个Token
+    //    token = lexer.getNextToken();
+    //}
 
     return 0;
 }

@@ -16,7 +16,7 @@ void Parser::Condition() {
 		token.getType() != TokenType::GREATER &&
 		token.getType() != TokenType::GREATER_EQUAL
 		) {
-		throw PL0Exception("非法的关系运算符", lexer->getLine(), lexer->getLine());
+		throw PL0Exception("非法的关系运算符", lexer->getLine(), lexer->getCol());
 	}
 	Expression();
 }
@@ -29,7 +29,7 @@ void Parser::ConditionalStat() {
 	Condition();
 	
 	if (token.getType() != TokenType::THEN) {
-		throw PL0Exception("条件语句格式错误", lexer->getLine(), lexer->getLine());
+		throw PL0Exception("条件语句格式错误", lexer->getLine(), lexer->getCol());
 	}
 	getNextToken();
 	Statement();
@@ -42,7 +42,7 @@ void Parser::LoopStat() {
 	Condition();
 	
 	if (token.getType() != TokenType::DO) {
-		throw PL0Exception("循环语句格式错误", lexer->getLine(), lexer->getLine());
+		throw PL0Exception("循环语句格式错误", lexer->getLine(), lexer->getCol());
 	}
 	getNextToken();
 	Statement();
@@ -69,14 +69,14 @@ void Parser::Factor() {
 		Expression();
 	
 		if (token.getType() != TokenType::RIGHT_PAREN) {
-			throw PL0Exception("缺少右括号", lexer->getLine(), lexer->getLine());
+			throw PL0Exception("缺少右括号", lexer->getLine(), lexer->getCol());
 		}
 
 		
 
 	}
 	else {
-		throw PL0Exception("缺少因子或因子格式错误", lexer->getLine(), lexer->getLine());
+		throw PL0Exception("缺少因子或因子格式错误", lexer->getLine(), lexer->getCol());
 	}
 }
 
@@ -142,7 +142,7 @@ void Parser::AssignmentStat() {
 
 	getNextToken();
 	if (token.getType() != TokenType::ASSIGN) {
-		throw PL0Exception("赋值语句格式错误", lexer->getLine(), lexer->getLine());
+		throw PL0Exception("赋值语句格式错误", lexer->getLine(), lexer->getCol());
 	}
 	Expression();
 	// finish 以下为语义分析、中间代码生成
@@ -179,7 +179,7 @@ void Parser::CompoundStat() {
 				break;
 			}
 			else {
-				throw PL0Exception("复合语句格式错误", lexer->getLine(), lexer->getLine());
+				throw PL0Exception("复合语句格式错误", lexer->getLine(), lexer->getCol());
 			}
 		}
 	}
@@ -191,7 +191,7 @@ void Parser::VarDeclaration() {
 	// 此时token已经指向VAR
 	getNextToken();
 	if (token.getType() != TokenType::IDENTIFIER) {
-		throw PL0Exception("变量说明格式错误", lexer->getLine(), lexer->getLine());
+		throw PL0Exception("变量说明格式错误", lexer->getLine(), lexer->getCol());
 	}
 	std::string sym_name = token.getValue();//sym_name为标识符名，此处生成中间代码
 	getNextToken();
@@ -199,7 +199,7 @@ void Parser::VarDeclaration() {
 		if (token.getType() == TokenType::COMMA) {
 			getNextToken();
 			if (token.getType() != TokenType::IDENTIFIER) {
-				throw PL0Exception("变量说明格式错误", lexer->getLine(), lexer->getLine());
+				throw PL0Exception("变量说明格式错误", lexer->getLine(), lexer->getCol());
 			}
 			std::string sym_name = token.getValue();//sym_name为标识符名，此处生成中间代码
 			getNextToken();
@@ -207,7 +207,7 @@ void Parser::VarDeclaration() {
 		else break;
 	}
 	if (token.getType() != TokenType::SEMICOLON) {
-		throw PL0Exception("常量说明格式错误，缺少分号", lexer->getLine(), lexer->getLine());
+		throw PL0Exception("常量说明格式错误，缺少分号", lexer->getLine(), lexer->getCol());
 	}
 }
 
@@ -217,18 +217,18 @@ void Parser::VarDeclaration() {
 void Parser::ConstDefinition() {
 	getNextToken();
 	if (token.getType() != TokenType::IDENTIFIER) {
-		throw PL0Exception("常量定义格式错误", lexer->getLine(), lexer->getLine());
+		throw PL0Exception("常量定义格式错误", lexer->getLine(), lexer->getCol());
 	}
 	std::string sym_name = token.getValue();
 	getNextToken();
 	if (token.getType() != TokenType::EQUAL) {
-		throw PL0Exception("常量定义格式错误", lexer->getLine() , lexer->getLine());
+		throw PL0Exception("常量定义格式错误", lexer->getLine() , lexer->getCol());
 	}
 	getNextToken();
 	std::string sym_num = token.getValue();
 	int value = std::stoi(sym_num);
 	if (token.getType() != TokenType::NUMBER) {
-		throw PL0Exception("常量定义格式错误", lexer->getLine(), lexer->getLine());
+		throw PL0Exception("常量定义格式错误", lexer->getLine(), lexer->getCol());
 	}
 	// finish 以下为语义分析、中间代码生成，sym_name、sym_num可用
 
@@ -249,7 +249,7 @@ void Parser::ConstDeclaration() {
 		else break;
 	}
 	if (token.getType() != TokenType::SEMICOLON) {
-		throw PL0Exception("常量说明格式错误，缺少分号", lexer->getLine(), lexer->getLine());
+		throw PL0Exception("常量说明格式错误，缺少分号", lexer->getLine(), lexer->getCol());
 	}
 	// finish 以下为语义分析、中间代码生成
 }
@@ -277,7 +277,7 @@ void Parser::Statement() {
 		//复合语句中的空语句，不作处理
 		break;
 	default:
-		throw PL0Exception("无法识别语句种类", lexer->getLine(), lexer->getLine());
+		throw PL0Exception("无法识别语句种类", lexer->getLine(), lexer->getCol());
 	}
 }
 /*
@@ -326,11 +326,11 @@ bool Parser::BeginParse() {
 void Parser::ProgramHead() {
 	getNextToken();
 	if (token.getType() != TokenType::PROGRAM) {
-		throw PL0Exception("程序首部缺少关键字PROGRAM", lexer->getLine(), lexer->getLine());
+		throw PL0Exception("程序首部缺少关键字PROGRAM", lexer->getLine(), lexer->getCol());
 	}
 	getNextToken();
 	if (token.getType() != TokenType::IDENTIFIER) {
-		throw PL0Exception("程序首部缺少标识符" , lexer->getLine(), lexer->getLine());
+		throw PL0Exception("程序首部缺少标识符" , lexer->getLine(), lexer->getCol());
 	}
 	// finish 以下为语义分析、中间代码生成
 	std::string program_name = token.getValue();

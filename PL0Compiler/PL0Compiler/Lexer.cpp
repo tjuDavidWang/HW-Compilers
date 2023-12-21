@@ -2,10 +2,12 @@
 #include<string>
 #include<unordered_map>
 #include<cctype>
+#include<algorithm>
 #include <fstream>
 #include <sstream>
 #include<stdexcept>
 #include"Lexer.h"
+#include"PL0Exception.h"
 
 /*
     词法分析器实现
@@ -90,7 +92,7 @@ Token Lexer::getNextToken() {
 
         default:
             // 如果状态未知，抛出异常
-            throw std::runtime_error("Lexer in unknown state");
+            throw PL0Exception("词法分析器处于未知状态");
         }
     }
 
@@ -118,12 +120,16 @@ void Lexer::handleWhitespace() {
 
 Token Lexer::identifierOrKeyword() {
     size_t start = position;
-    while (position < source.length() && isalnum(source[position])) {
+     while (position < source.length() && isalnum(source[position])) {
         advance();
     }
     std::string value = source.substr(start, position - start);
+    std::string upperValue = value;
+    std::transform(upperValue.begin(), upperValue.end(), upperValue.begin(),
+        [](unsigned char c) { return std::toupper(c); });
+
     currentState = START;
-    return Token(determineIdentifierType(value), value);
+    return Token(determineIdentifierType(upperValue), value);
 }
 
 Token Lexer::number() {
@@ -183,13 +189,13 @@ Token Lexer::handleSymbol() {
             return Token(ASSIGN, ":=");
         }
         else {
-            throw std::runtime_error("Unexpected character: ':', expected ':='");
+            throw PL0Exception("非法输入 ':',你要输入 ':='？");
         }
     case '(': return Token(LEFT_PAREN, "(");
     case ')': return Token(RIGHT_PAREN, ")");
     case ';': return Token(SEMICOLON, ";");
     case ',': return Token(COMMA, ",");
     default:
-        throw std::runtime_error("Unexpected character: " + std::string(1, current));
+        throw PL0Exception("非法字符'" + std::string(1, current)+"'");
     }
 }

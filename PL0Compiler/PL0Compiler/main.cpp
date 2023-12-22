@@ -57,7 +57,9 @@ int main()
     Lexer lexer(sourceCode);
     Parser parser(lexer);
     bool flag = parser.BeginParse();
-
+    std::ofstream fout("IR.txt");
+    parser.Output(fout);
+    fout.close();
     if (flag)
         std::cout << "语法分析成功" << std::endl;
 

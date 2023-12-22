@@ -7,7 +7,6 @@
 map<string,string> IdentifierTable;
 map<string,string> TempTable;
 int tempCount = 0;
-ofstream fout("IR.mid",ios::out);
 vector<array<string,4>> IR(100);
 void emit(string op,string arg1,string arg2,string result)
 {
@@ -17,7 +16,12 @@ string newtemp()
 {
 	while(IdentifierTable.find(
 		"TempVar"+to_string(tempCount)
-		)!=IdentifierTable.end())
+		)!=IdentifierTable.end()
+		||
+		TempTable.find(
+			"TempVar"+to_string(tempCount)
+		)!=TempTable.end()
+		)
 	{
 		tempCount++;
 	}
@@ -147,7 +151,7 @@ string Parser::Item() {
 			break;
 	}
 
-
+	return currentItem;
 }
 
 /*
@@ -402,4 +406,17 @@ void Parser::ProgramHead() {
 	// finish 以下为语义分析、中间代码生成
 	std::string program_name = token.getValue();
 
+}
+
+void Parser::Output(ofstream& fout)
+{
+	for(auto [name,kind]:IdentifierTable)
+	{
+		fout<<name<<" "<<kind<<endl;
+	}
+	for(int i=100;i<IR.size();i++)
+	{
+		auto [op,arg1,arg2,result]=IR[i];
+		fout<<i<<" "<<"("+op+","+arg1+","+arg2+","+result+")"<<endl;
+	}
 }

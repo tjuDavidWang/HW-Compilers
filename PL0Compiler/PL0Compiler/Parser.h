@@ -3,6 +3,7 @@
 #include "Lexer.h"
 #include<string>
 #include<array>
+#include<fstream>
 
 /*
 	语法分析器
@@ -14,6 +15,7 @@ public:
 	Parser(Lexer& lexer) {this->lexer = &lexer;}
 	~Parser() {}
 	bool BeginParse(); // 程序  启动语法分析
+	void Output(std::ofstream& fout);
 	
 private:
 	Token token;// 当前符号
@@ -33,6 +35,7 @@ private:
 	void ConditionalStat();//条件语句
 	void LoopStat();//循环语句
 	void CompoundStat();//复合语句
+	
 	
 
 	std::string Expression();//表达式

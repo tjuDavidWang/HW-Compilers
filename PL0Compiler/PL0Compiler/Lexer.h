@@ -1,32 +1,63 @@
 #pragma once
-#include<iostream>
-#include<string>
-#include<unordered_map>
-#include<cctype>
+#include <iostream>
+#include <string>
+#include <unordered_map>
+#include <cctype>
 #include <fstream>
 #include <sstream>
-#include<stdexcept>
+#include <stdexcept>
 
-// ËùÓĞ´Ê·¨·ûºÅÃ¶¾ÙÀàĞÍ
-enum TokenType {
-    PROGRAM, VAR, CONST, BEGIN, END, WHILE, DO, IF, THEN, 
-    IDENTIFIER, NUMBER, 
-    PLUS, MINUS, MULTIPLY, DIVIDE, ASSIGN, EQUAL, NOT_EQUAL,
-    LESS, LESS_EQUAL, GREATER, GREATER_EQUAL,
-    LEFT_PAREN, RIGHT_PAREN, SEMICOLON, COMMA,
-    END_OF_FILE, UNKNOWN
+// æ‰€æœ‰è¯æ³•ç¬¦å·æšä¸¾ç±»å‹
+enum TokenType
+{
+    PROGRAM,
+    VAR,
+    CONST,
+    BEGIN,
+    END,
+    WHILE,
+    DO,
+    IF,
+    THEN,
+    IDENTIFIER,
+    NUMBER,
+    PLUS,
+    MINUS,
+    MULTIPLY,
+    DIVIDE,
+    ASSIGN,
+    EQUAL,
+    NOT_EQUAL,
+    LESS,
+    LESS_EQUAL,
+    GREATER,
+    GREATER_EQUAL,
+    LEFT_PAREN,
+    RIGHT_PAREN,
+    SEMICOLON,
+    COMMA,
+    END_OF_FILE,
+    UNKNOWN
 };
 
-// ´Ê·¨·ÖÎöÆ÷×´Ì¬
-enum State {
-    START, IN_COMMENT, IN_NUMBER, IN_IDENTIFIER, IN_ASSIGN, IN_LESS, IN_GREATER, IN_ERROR
+// è¯æ³•åˆ†æå™¨çŠ¶æ€
+enum State
+{
+    START,
+    IN_COMMENT,
+    IN_NUMBER,
+    IN_IDENTIFIER,
+    IN_ASSIGN,
+    IN_LESS,
+    IN_GREATER,
+    IN_ERROR
 };
 
-
-// ·ûºÅÀà
-class Token {
+// ç¬¦å·ç±»
+class Token
+{
 public:
-    Token():type(TokenType::UNKNOWN),value("") {}
+    Token() : type(TokenType::UNKNOWN), value("") {}
 
     Token(TokenType type, std::string value) : type(type), value(value) {}
 
@@ -38,29 +69,29 @@ private:
     std::string value;
 };
 
-// ´Ê·¨·ÖÎöÀà
-class Lexer {
+// è¯æ³•åˆ†æç±»
+class Lexer
+{
 private:
     std::string source;
     size_t position;
-    int line, col; // Ìí¼ÓĞĞºÅºÍÁĞºÅ£¬ÓÃÓÚÊä³ö´íÎóĞÅÏ¢
+    int line, col; // æ·»åŠ è¡Œå·å’Œåˆ—å·ï¼Œç”¨äºè¾“å‡ºé”™è¯¯ä¿¡æ¯
 
     State currentState;
+
 public:
-    Lexer(const std::string& source) : 
-        source(source), position(0), line(1), col(1), currentState(START) {};
-    
-    // »ñµÃÏÂÒ»¸ö·ûºÅ
+    Lexer(const std::string &source) : source(source), position(0), line(1), col(1), currentState(START){};
+
+    // è·å¾—ä¸‹ä¸€ä¸ªç¬¦å·
     Token getNextToken();
     int getLine() { return line; }
     int getCol() { return col; }
 
 private:
-    void advance() ;
-    void handleWhitespace() ;
-    Token identifierOrKeyword() ;
-    Token number() ;
-    TokenType determineIdentifierType(const std::string &str) ;
-    Token handleSymbol() ;
-
+    void advance();
+    void handleWhitespace();
+    Token identifierOrKeyword();
+    Token number();
+    TokenType determineIdentifierType(const std::string &str);
+    Token handleSymbol();
 };

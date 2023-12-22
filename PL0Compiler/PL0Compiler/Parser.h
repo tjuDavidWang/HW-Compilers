@@ -1,10 +1,11 @@
 #pragma once
 
 #include "Lexer.h"
-
+#include<string>
+#include<array>
 
 /*
-	Óï·¨·ÖÎöÆ÷
+	è¯­æ³•åˆ†æå™¨
 */
 
 class Parser
@@ -12,33 +13,33 @@ class Parser
 public:
 	Parser(Lexer& lexer) {this->lexer = &lexer;}
 	~Parser() {}
-	bool BeginParse(); // ³ÌĞò  Æô¶¯Óï·¨·ÖÎö
+	bool BeginParse(); // ç¨‹åº  å¯åŠ¨è¯­æ³•åˆ†æ
 	
 private:
-	Token token;// µ±Ç°·ûºÅ
-	Lexer* lexer=nullptr;// ´Ê·¨·ÖÎöÆ÷
+	Token token;// å½“å‰ç¬¦å·
+	Lexer* lexer=nullptr;// è¯æ³•åˆ†æå™¨
 
 	void getNextToken() { token = lexer->getNextToken(); }
 
 	
-	void ProgramHead(); // ³ÌĞòÊ×²¿
-	void SubProgram(); //·Ö³ÌĞò
-	void ConstDeclaration();// ³£Á¿ÉùÃ÷
-	void ConstDefinition();//³£Á¿¶¨Òå
-	void VarDeclaration();//±äÁ¿ÉùÃ÷
+	void ProgramHead(); // ç¨‹åºé¦–éƒ¨
+	void SubProgram(); //åˆ†ç¨‹åº
+	void ConstDeclaration();// å¸¸é‡å£°æ˜
+	void ConstDefinition();//å¸¸é‡å®šä¹‰
+	void VarDeclaration();//å˜é‡å£°æ˜
 
-	void Statement();//Óï¾ä
-	void AssignmentStat();//¸³ÖµÓï¾ä
-	void ConditionalStat();//Ìõ¼şÓï¾ä
-	void LoopStat();//Ñ­»·Óï¾ä
-	void CompoundStat();//¸´ºÏÓï¾ä
+	void Statement();//è¯­å¥
+	void AssignmentStat();//èµ‹å€¼è¯­å¥
+	void ConditionalStat();//æ¡ä»¶è¯­å¥
+	void LoopStat();//å¾ªç¯è¯­å¥
+	void CompoundStat();//å¤åˆè¯­å¥
 	
 
-	void Expression();//±í´ïÊ½
-	void Item();//Ïî
-	void Factor();//Òò×Ó
+	std::string Expression();//è¡¨è¾¾å¼
+	std::string Item();//é¡¹
+	std::string Factor();//å› å­
 
-	void Condition();//Ìõ¼ş
+	std::array<std::string,3> Condition();//æ¡ä»¶
 
 
 	

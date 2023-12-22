@@ -1,57 +1,77 @@
-#include<iostream>
-#include<string>
-#include<unordered_map>
-#include<cctype>
+#include <iostream>
+#include <string>
+#include <unordered_map>
+#include <cctype>
 #include <fstream>
 #include <sstream>
-#include<stdexcept>
-#include"Lexer.h"
-#include"Parser.h"
+#include <stdexcept>
+#include "Lexer.h"
+#include "Parser.h"
 std::unordered_map<TokenType, std::string> tokenNames = {
-    {PROGRAM, "PROGRAM"}, {VAR, "VAR"}, {CONST, "CONST"}, {BEGIN, "BEGIN"},
-    {END, "END"}, {WHILE, "WHILE"}, {DO, "DO"}, {IF, "IF"}, {THEN, "THEN"},
-    {IDENTIFIER, "IDENTIFIER"}, {NUMBER, "NUMBER"},
-    {PLUS, "PLUS"}, {MINUS, "MINUS"}, {MULTIPLY, "MULTIPLY"}, {DIVIDE, "DIVIDE"},
-    {ASSIGN, "ASSIGN"}, {EQUAL, "EQUAL"}, {NOT_EQUAL, "NOT_EQUAL"},
-    {LESS, "LESS"}, {LESS_EQUAL, "LESS_EQUAL"}, {GREATER, "GREATER"},
+    {PROGRAM, "PROGRAM"},
+    {VAR, "VAR"},
+    {CONST, "CONST"},
+    {BEGIN, "BEGIN"},
+    {END, "END"},
+    {WHILE, "WHILE"},
+    {DO, "DO"},
+    {IF, "IF"},
+    {THEN, "THEN"},
+    {IDENTIFIER, "IDENTIFIER"},
+    {NUMBER, "NUMBER"},
+    {PLUS, "PLUS"},
+    {MINUS, "MINUS"},
+    {MULTIPLY, "MULTIPLY"},
+    {DIVIDE, "DIVIDE"},
+    {ASSIGN, "ASSIGN"},
+    {EQUAL, "EQUAL"},
+    {NOT_EQUAL, "NOT_EQUAL"},
+    {LESS, "LESS"},
+    {LESS_EQUAL, "LESS_EQUAL"},
+    {GREATER, "GREATER"},
     {GREATER_EQUAL, "GREATER_EQUAL"},
-    {LEFT_PAREN, "LEFT_PAREN"}, {RIGHT_PAREN, "RIGHT_PAREN"},
-    {SEMICOLON, "SEMICOLON"}, {COMMA, "COMMA"},
-    {END_OF_FILE, "END_OF_FILE"}, {UNKNOWN, "UNKNOWN"}
-};
-int main() {
-    // ÷∏∂®‘¥¥˙¬ÎŒƒº˛µƒ¬∑æ∂
+    {LEFT_PAREN, "LEFT_PAREN"},
+    {RIGHT_PAREN, "RIGHT_PAREN"},
+    {SEMICOLON, "SEMICOLON"},
+    {COMMA, "COMMA"},
+    {END_OF_FILE, "END_OF_FILE"},
+    {UNKNOWN, "UNKNOWN"}};
+int main()
+{
+    // ÊåáÂÆöÊ∫ê‰ª£Á†ÅÊñá‰ª∂ÁöÑË∑ØÂæÑ
     std::string filePath = "source/source.pl0";
 
     std::ifstream file(filePath);
-    if (!file.is_open()) {
+    if (!file.is_open())
+    {
         std::cerr << "failed to open: " << filePath << std::endl;
         return 1;
     }
 
-    // ∂¡»°Œƒº˛ƒ⁄»›µΩ◊÷∑˚¥Æ
+    // ËØªÂèñÊñá‰ª∂ÂÜÖÂÆπÂà∞Â≠óÁ¨¶‰∏≤
     std::stringstream buffer;
     buffer << file.rdbuf();
     std::string sourceCode = buffer.str();
 
-    // ¥¥Ω®“ª∏ˆ¥ ∑®∑÷Œˆ∆˜ µ¿˝
+    // ÂàõÂª∫‰∏Ä‰∏™ËØçÊ≥ïÂàÜÊûêÂô®ÂÆû‰æã
     Lexer lexer(sourceCode);
     Parser parser(lexer);
-    bool flag=parser.BeginParse();
+    bool flag = parser.BeginParse();
 
-    if (flag)std::cout << "”Ô∑®∑÷Œˆ≥…π¶" << std::endl;
+    if (flag)
+        std::cout << "ËØ≠Ê≥ïÂàÜÊûêÊàêÂäü" << std::endl;
 
-    // ¥ ∑®∑÷Œˆ≤‚ ‘≥Ã–Ú£∫
-    //// —≠ª∑ªÒ»°À˘”–µƒToken£¨÷±µΩ”ˆµΩŒƒº˛Ω· ¯∑˚
-    //Token token = lexer.getNextToken();
-    //while (token.getType() != END_OF_FILE) {
-    //    //  π”√”≥…‰±Ì¿¥ªÒ»°Token¿‡–Õµƒ√˚≥∆
-    //    std::string tokenName = tokenNames[token.getType()];
+    // ËØçÊ≥ïÂàÜÊûêÊµãËØïÁ®ãÂ∫èÔºö
+    //// Âæ™ÁéØËé∑ÂèñÊâÄÊúâÁöÑTokenÔºåÁõ¥Âà∞ÈÅáÂà∞Êñá‰ª∂ÁªìÊùüÁ¨¶
+    // Token token = lexer.getNextToken();
+    // while (token.getType() != END_OF_FILE) {
+    //     // ‰ΩøÁî®Êò†Â∞ÑË°®Êù•Ëé∑ÂèñTokenÁ±ªÂûãÁöÑÂêçÁß∞
+    //     std::string tokenName = tokenNames[token.getType()];
 
-    //    // ¥Ú”°Tokenµƒ¿‡–Õ√˚≥∆°¢¿‡–Õ∫Õ÷µ
+    //    // ÊâìÂç∞TokenÁöÑÁ±ªÂûãÂêçÁß∞„ÄÅÁ±ªÂûãÂíåÂÄº
     //    std::cout << "Token: " << tokenName << " (" << token.getType() << "), Value: " << token.getValue() << std::endl;
 
-    //    // ªÒ»°œ¬“ª∏ˆToken
+    //    // Ëé∑Âèñ‰∏ã‰∏Ä‰∏™Token
     //    token = lexer.getNextToken();
     //}
 

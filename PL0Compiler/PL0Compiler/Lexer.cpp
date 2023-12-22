@@ -10,49 +10,49 @@
 #include"PL0Exception.h"
 
 /*
-    ´Ê·¨·ÖÎöÆ÷ÊµÏÖ
+    è¯æ³•åˆ†æå™¨å®ç°
 */
 
 
 
 Token Lexer::getNextToken() {
-    // Ñ­»·±éÀúÔ´´úÂëÖĞµÄÃ¿¸ö×Ö·û
+    // å¾ªç¯éå†æºä»£ç ä¸­çš„æ¯ä¸ªå­—ç¬¦
     while (position < source.length()) {
         char current = source[position];
 
-        // ¸ù¾İµ±Ç°µÄ×´Ì¬À´´¦Àí×Ö·û
+        // æ ¹æ®å½“å‰çš„çŠ¶æ€æ¥å¤„ç†å­—ç¬¦
         switch (currentState) {
         case START:
-            // ºöÂÔ¿Õ°××Ö·û£¬¸üĞÂ×´Ì¬»ú
+            // å¿½ç•¥ç©ºç™½å­—ç¬¦ï¼Œæ›´æ–°çŠ¶æ€æœº
             if (isspace(current)) {
                 handleWhitespace();
             }
-            // Èç¹ûÊÇ×ÖÄ¸£¬×ªÒÆµ½±êÊ¶·û×´Ì¬
+            // å¦‚æœæ˜¯å­—æ¯ï¼Œè½¬ç§»åˆ°æ ‡è¯†ç¬¦çŠ¶æ€
             else if (isalpha(current)) {
                 currentState = IN_IDENTIFIER;
             }
-            // Èç¹ûÊÇÊı×Ö£¬×ªÒÆµ½Êı×Ö×´Ì¬
+            // å¦‚æœæ˜¯æ•°å­—ï¼Œè½¬ç§»åˆ°æ•°å­—çŠ¶æ€
             else if (isdigit(current)) {
                 currentState = IN_NUMBER;
             }
-            // ÆäËûÇé¿ö£¬´¦ÀíÎª·ûºÅ»òÌØÊâ×Ö·û
+            // å…¶ä»–æƒ…å†µï¼Œå¤„ç†ä¸ºç¬¦å·æˆ–ç‰¹æ®Šå­—ç¬¦
             else {
                 return handleSymbol();
             }
             break;
 
         case IN_IDENTIFIER:
-            // ´¦Àí±êÊ¶·û»ò¹Ø¼ü×Ö²¢·µ»ØToken
+            // å¤„ç†æ ‡è¯†ç¬¦æˆ–å…³é”®å­—å¹¶è¿”å›Token
             return identifierOrKeyword();
 
         case IN_NUMBER:
-            // ´¦ÀíÊı×Ö²¢·µ»ØToken
+            // å¤„ç†æ•°å­—å¹¶è¿”å›Token
             return number();
 
-            // ´¦Àí ':=' ·ûºÅ
+            // å¤„ç† ':=' ç¬¦å·
         case IN_ASSIGN:
             if (current == '=') {
-                advance(); // Ìø¹ı '='
+                advance(); // è·³è¿‡ '='
                 currentState = START;
                 return Token(ASSIGN, ":=");
             }
@@ -61,15 +61,15 @@ Token Lexer::getNextToken() {
                 return Token(UNKNOWN, ":");
             }
 
-            // ´¦Àí '<', '<>', '<=' ·ûºÅ
+            // å¤„ç† '<', '<>', '<=' ç¬¦å·
         case IN_LESS:
             if (current == '>') {
-                advance(); // Ìø¹ı '>'
+                advance(); // è·³è¿‡ '>'
                 currentState = START;
                 return Token(NOT_EQUAL, "<>");
             }
             else if (current == '=') {
-                advance(); // Ìø¹ı '='
+                advance(); // è·³è¿‡ '='
                 currentState = START;
                 return Token(LESS_EQUAL, "<=");
             }
@@ -78,10 +78,10 @@ Token Lexer::getNextToken() {
                 return Token(LESS, "<");
             }
 
-            // ´¦Àí '>' ºÍ '>=' ·ûºÅ
+            // å¤„ç† '>' å’Œ '>=' ç¬¦å·
         case IN_GREATER:
             if (current == '=') {
-                advance(); // Ìø¹ı '='
+                advance(); // è·³è¿‡ '='
                 currentState = START;
                 return Token(GREATER_EQUAL, ">=");
             }
@@ -91,12 +91,12 @@ Token Lexer::getNextToken() {
             }
 
         default:
-            // Èç¹û×´Ì¬Î´Öª£¬Å×³öÒì³£
-            throw PL0Exception("´Ê·¨·ÖÎöÆ÷´¦ÓÚÎ´Öª×´Ì¬");
+            // å¦‚æœçŠ¶æ€æœªçŸ¥ï¼ŒæŠ›å‡ºå¼‚å¸¸
+            throw PL0Exception("è¯æ³•åˆ†æå™¨å¤„äºæœªçŸ¥çŠ¶æ€");
         }
     }
 
-    // ÎÄ¼şÄ©Î²Ê±·µ»ØEND_OF_FILE
+    // æ–‡ä»¶æœ«å°¾æ—¶è¿”å›END_OF_FILE
     return Token(END_OF_FILE, "");
 }
 
@@ -155,7 +155,7 @@ TokenType Lexer::determineIdentifierType(const std::string& str) {
 
 Token Lexer::handleSymbol() {
     char current = source[position];
-    advance(); // ×ÜÊÇÏÈ¶ÁÈ¡µ±Ç°×Ö·û
+    advance(); // æ€»æ˜¯å…ˆè¯»å–å½“å‰å­—ç¬¦
 
     switch (current) {
     case '+': return Token(PLUS, "+");
@@ -189,13 +189,13 @@ Token Lexer::handleSymbol() {
             return Token(ASSIGN, ":=");
         }
         else {
-            throw PL0Exception("·Ç·¨ÊäÈë ':',ÄãÒªÊäÈë ':='£¿");
+            throw PL0Exception("éæ³•è¾“å…¥ ':',ä½ è¦è¾“å…¥ ':='ï¼Ÿ");
         }
     case '(': return Token(LEFT_PAREN, "(");
     case ')': return Token(RIGHT_PAREN, ")");
     case ';': return Token(SEMICOLON, ";");
     case ',': return Token(COMMA, ",");
     default:
-        throw PL0Exception("·Ç·¨×Ö·û'" + std::string(1, current)+"'");
+        throw PL0Exception("éæ³•å­—ç¬¦'" + std::string(1, current)+"'");
     }
 }

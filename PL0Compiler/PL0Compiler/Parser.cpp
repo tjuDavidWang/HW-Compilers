@@ -1,14 +1,36 @@
 
 #include"Parser.h"
 #include"PL0Exception.h"
-
+#include<map>
+#include<vector>
+#include<cstdlib>
+map<string,string> IdentifierTable;
+map<string,string> TempTable;
+int tempCount = 0;
+ofstream fout("IR.mid",ios::out);
+vector<array<string,4>> IR(100);
+void emit(string op,string arg1,string arg2,string result)
+{
+	IR.push_back({op,arg1,arg2,result});
+}
+string newtemp()
+{
+	while(IdentifierTable.find(
+		"TempVar"+to_string(tempCount)
+		)!=IdentifierTable.end())
+	{
+		tempCount++;
+	}
+	TempTable["TempVar"+to_string(tempCount)]="Temp";
+	return "TempVar"+to_string(tempCount);
+}
 /*
-	<Ìõ¼ş> => <±í´ïÊ½><¹ØÏµÔËËã·û><±í´ïÊ½>
+	<æ¡ä»¶> => <è¡¨è¾¾å¼><å…³ç³»è¿ç®—ç¬¦><è¡¨è¾¾å¼>
 
-	Condition½«Ö¸ÕëÖ¸ÏòConditionºóÒ»Ïî
+	Conditionå°†æŒ‡é’ˆæŒ‡å‘Conditionåä¸€é¡¹
 */
-void Parser::Condition() {
-	Expression();
+array<string,3> Parser::Condition() {
+	auto arg1 = Expression();
 	if (token.getType() != TokenType::EQUAL &&
 		token.getType() != TokenType::NOT_EQUAL &&
 		token.getType() != TokenType::LESS &&
@@ -16,87 +38,110 @@ void Parser::Condition() {
 		token.getType() != TokenType::GREATER &&
 		token.getType() != TokenType::GREATER_EQUAL
 		) {
-		throw PL0Exception("·Ç·¨µÄ¹ØÏµÔËËã·û", lexer->getLine(), lexer->getCol());
+		throw PL0Exception("éæ³•çš„å…³ç³»è¿ç®—ç¬¦", lexer->getLine(), lexer->getCol());
 	}
-	Expression();
+	auto op = token.getValue();
+	auto arg2 = Expression();
+	return {op,arg1,arg2};
 }
 
 /*
-	<Ìõ¼şÓï¾ä> => IF <Ìõ¼ş> THEN <Óï¾ä>
+	<æ¡ä»¶è¯­å¥> => IF <æ¡ä»¶> THEN <è¯­å¥>
 */
 void Parser::ConditionalStat() {
-	// ´ËÊ±tokenÒÑ¾­Ö¸ÏòIF
-	Condition();
-	
+	// æ­¤æ—¶tokenå·²ç»æŒ‡å‘IF
+	auto [op,arg1,arg2] = Condition();
+	auto to_refill1 = IR.size();
+	emit("j"+op,arg1,arg2,"M");
+	auto to_refill2 = IR.size();
+	emit("j","_","_","M");
 	if (token.getType() != TokenType::THEN) {
-		throw PL0Exception("Ìõ¼şÓï¾ä¸ñÊ½´íÎó", lexer->getLine(), lexer->getCol());
+		throw PL0Exception("æ¡ä»¶è¯­å¥æ ¼å¼é”™è¯¯", lexer->getLine(), lexer->getCol());
 	}
 	getNextToken();
+	IR[to_refill1][3]=to_string(IR.size());
 	Statement();
+	IR[to_refill2][3] = to_string(IR.size());
 }
 
 /*
-	<Ñ­»·Óï¾ä> => WHILE <Ìõ¼ş> DO <Óï¾ä>
+	<å¾ªç¯è¯­å¥> => WHILE <æ¡ä»¶> DO <è¯­å¥>
 */
 void Parser::LoopStat() {
-	Condition();
-	
+	auto [op,arg1,arg2] = Condition();
+	auto to_refill1 = IR.size();
+	emit("j"+op,arg1,arg2,"M");
+	auto to_refill2 = IR.size();
+	emit("j","_","_","M");
 	if (token.getType() != TokenType::DO) {
-		throw PL0Exception("Ñ­»·Óï¾ä¸ñÊ½´íÎó", lexer->getLine(), lexer->getCol());
+		throw PL0Exception("å¾ªç¯è¯­å¥æ ¼å¼é”™è¯¯", lexer->getLine(), lexer->getCol());
 	}
 	getNextToken();
+	IR[to_refill1][3]=to_string(IR.size());
 	Statement();
+	emit("j","_","_",to_string(to_refill1));
+	IR[to_refill2][3] = to_string(IR.size());
 }
 
 
 /*
-	<Òò×Ó> => <±êÊ¶·û>|<ÎŞ·ûºÅÕûÊı>|(<±í´ïÊ½>)
+	<å› å­> => <æ ‡è¯†ç¬¦>|<æ— ç¬¦å·æ•´æ•°>|(<è¡¨è¾¾å¼>)
 */
-void Parser::Factor() {
+string Parser::Factor() {
 	
 	if (token.getType() == TokenType::IDENTIFIER) {
-		// Ê¶±ğÎª±êÊ¶·û
-
+		// è¯†åˆ«ä¸ºæ ‡è¯†ç¬¦
+		if(IdentifierTable.find(token.getValue())==IdentifierTable.end()){
+			throw PL0Exception("Identifier Not Declared",lexer->getLine(),lexer->getCol());
+		}
+		return token.getValue();
 	}
 	else if (token.getType() == TokenType::NUMBER) {
-		// Ê¶±ğÎªÊı×Ö
-
+		// è¯†åˆ«ä¸ºæ•°å­—
+		auto temp = newtemp();
+		emit(":=",token.getValue(),"_",temp);
+		return temp;
 	}
 	else if (token.getType() == TokenType::LEFT_PAREN) {
-		// Ê¶±ğÎª±í´ïÊ½
+		// è¯†åˆ«ä¸ºè¡¨è¾¾å¼
 
 
-		Expression();
+		auto E = Expression();
 	
 		if (token.getType() != TokenType::RIGHT_PAREN) {
-			throw PL0Exception("È±ÉÙÓÒÀ¨ºÅ", lexer->getLine(), lexer->getCol());
+			throw PL0Exception("ç¼ºå°‘å³æ‹¬å·", lexer->getLine(), lexer->getCol());
 		}
 
 		
-
+		return E;
 	}
 	else {
-		throw PL0Exception("È±ÉÙÒò×Ó»òÒò×Ó¸ñÊ½´íÎó", lexer->getLine(), lexer->getCol());
+		throw PL0Exception("ç¼ºå°‘å› å­æˆ–å› å­æ ¼å¼é”™è¯¯", lexer->getLine(), lexer->getCol());
 	}
 }
 
 /*
-	<Ïî> => <Òò×Ó>|<Ïî><³Ë·¨ÔËËã·û><Òò×Ó>
-	¿ÉÒÔµÈ¼ÛÎª£º
-	<Ïî> => <Òò×Ó> { <³Ë·¨ÔËËã·û> <Òò×Ó> }
+	<é¡¹> => <å› å­>|<é¡¹><ä¹˜æ³•è¿ç®—ç¬¦><å› å­>
+	å¯ä»¥ç­‰ä»·ä¸ºï¼š
+	<é¡¹> => <å› å­> { <ä¹˜æ³•è¿ç®—ç¬¦> <å› å­> }
 
-	Item½«Ö¸ÕëÖ¸ÏòItemºóÒ»Ïî
+	Itemå°†æŒ‡é’ˆæŒ‡å‘Itemåä¸€é¡¹
 */
-void Parser::Item() {
-	Factor();
+string Parser::Item() {
+	auto currentItem = Factor();
 	getNextToken();
 	while (true) {
 		if (token.getType() == TokenType::MULTIPLY || token.getType() == TokenType::DIVIDE) {
-			// ´æÔÚºó¼ÌÒò×Ó
-			// ÓïÒå´¦Àí
+			// å­˜åœ¨åç»§å› å­
+			// è¯­ä¹‰å¤„ç†
+			auto temp = newtemp();
+			auto op = token.getValue();
+			auto arg1 = currentItem;
 			getNextToken();
-			Factor();
+			auto arg2 = Factor();
 			getNextToken();
+			emit(op,arg1,arg2,temp);
+			currentItem = temp;
 		}
 		else
 			break;
@@ -106,139 +151,157 @@ void Parser::Item() {
 }
 
 /*
-	<±í´ïÊ½> => [+|-]Ïî|<±í´ïÊ½><¼Ó·¨ÔËËã·û><Ïî>
-	¿ÉÒÔµÈ¼ÛÎª£º
-	<±í´ïÊ½> => [<¼Ó·¨ÔËËã·û>] Ïî { <¼Ó·¨ÔËËã·û> Ïî }
+	<è¡¨è¾¾å¼> => [+|-]é¡¹|<è¡¨è¾¾å¼><åŠ æ³•è¿ç®—ç¬¦><é¡¹>
+	å¯ä»¥ç­‰ä»·ä¸ºï¼š
+	<è¡¨è¾¾å¼> => [<åŠ æ³•è¿ç®—ç¬¦>] é¡¹ { <åŠ æ³•è¿ç®—ç¬¦> é¡¹ }
 
-	Expression½«Ö¸ÕëÖ¸ÏòExpressionºóÒ»Ïî
+	Expressionå°†æŒ‡é’ˆæŒ‡å‘Expressionåä¸€é¡¹
 */
-void Parser::Expression() {
+string Parser::Expression() {
+	bool existSingleMinus=false;
 	getNextToken();
 	if (token.getType() == TokenType::PLUS || token.getType() == TokenType::MINUS) {
-		// ÓïÒå´¦Àí
-
+		// è¯­ä¹‰å¤„ç†
+		existSingleMinus = true;
 		getNextToken();
 	}
-	Item();//Itemº¯ÊıÒÑ¾­½«Ö¸ÕëÖ¸ÏòÁËItemºóÒ»Ïî
+	auto currentItem = Item();//Itemå‡½æ•°å·²ç»å°†æŒ‡é’ˆæŒ‡å‘äº†Itemåä¸€é¡¹
 	while (true) {
 		if (token.getType() == TokenType::PLUS || token.getType() == TokenType::MINUS) {
-			// ´æÔÚºó¼ÌÏî
-			// ÓïÒå´¦Àí
+			// å­˜åœ¨åç»§é¡¹
+			// è¯­ä¹‰å¤„ç†
+			auto temp = newtemp();
+			auto op = token.getValue();
+			auto arg1 = currentItem;
 			getNextToken();
-			Item();//Itemº¯ÊıÒÑ¾­½«Ö¸ÕëÖ¸ÏòÁËItemºóÒ»Ïî
+			auto arg2 = Item();//Itemå‡½æ•°å·²ç»å°†æŒ‡é’ˆæŒ‡å‘äº†Itemåä¸€é¡¹
+			emit(op,arg1,arg2,temp);
+			currentItem = temp;
 		}
 		else
 			break;
 	}
-	
+	return currentItem;
 }
 
 /*
-	<¸³ÖµÓï¾ä> => <±êÊ¶·û> := <±í´ïÊ½>
+	<èµ‹å€¼è¯­å¥> => <æ ‡è¯†ç¬¦> := <è¡¨è¾¾å¼>
 */
 void Parser::AssignmentStat() {
-	// ´ËÊ±tokenÒÑ¾­Ö¸ÏòIDENTIFIER
+	// æ­¤æ—¶tokenå·²ç»æŒ‡å‘IDENTIFIER
 	std::string sym_name = token.getValue();
 
 	getNextToken();
 	if (token.getType() != TokenType::ASSIGN) {
-		throw PL0Exception("¸³ÖµÓï¾ä¸ñÊ½´íÎó", lexer->getLine(), lexer->getCol());
+		throw PL0Exception("èµ‹å€¼è¯­å¥æ ¼å¼é”™è¯¯", lexer->getLine(), lexer->getCol());
 	}
-	Expression();
-	// finish ÒÔÏÂÎªÓïÒå·ÖÎö¡¢ÖĞ¼ä´úÂëÉú³É
+	auto E = Expression();
+	// finish ä»¥ä¸‹ä¸ºè¯­ä¹‰åˆ†æã€ä¸­é—´ä»£ç ç”Ÿæˆ
+	if(
+		IdentifierTable.find(sym_name)!=IdentifierTable.end()
+		)
+	{
+		emit(":=",E,"_",sym_name);
+	}
+	else
+	{
+		throw PL0Exception("Identifier Not Found",lexer->getLine(),lexer->getCol());
+	}
 }
 
 /*
-	<¸´ºÏÓï¾ä> => BEGIN <Óï¾ä>{;<Óï¾ä>}END
+	<å¤åˆè¯­å¥> => BEGIN <è¯­å¥>{;<è¯­å¥>}END
 */
 void Parser::CompoundStat() {
-	// ´ËÊ±TOKENÖ¸ÏòBEGIN
+	// æ­¤æ—¶TOKENæŒ‡å‘BEGIN
 	token = lexer->getNextToken();;
 	Statement();
 	while (true) {
 		if (token.getType() == TokenType::SEMICOLON) {
-			//¿ÕÓï¾äºó·ÖºÅ
+			//ç©ºè¯­å¥ååˆ†å·
 			getNextToken();
 			Statement();
 		}
 		else if (token.getType() == TokenType::END) {
-			//¿ÕÓï¾äºóEND
+			//ç©ºè¯­å¥åEND
 			break;
 		}
 
 		else {
-			//Õı³£Óï¾ä½áÊø
+			//æ­£å¸¸è¯­å¥ç»“æŸ
 			getNextToken();
 			if (token.getType() == TokenType::SEMICOLON) {
-				//Õı³£Óï¾äºó·ÖºÅ
+				//æ­£å¸¸è¯­å¥ååˆ†å·
 				getNextToken();
 				Statement();
 			}
 			else if (token.getType() == TokenType::END) {
-				//Õı³£Óï¾äºóEND
+				//æ­£å¸¸è¯­å¥åEND
 				break;
 			}
 			else {
-				throw PL0Exception("¸´ºÏÓï¾ä¸ñÊ½´íÎó", lexer->getLine(), lexer->getCol());
+				throw PL0Exception("å¤åˆè¯­å¥æ ¼å¼é”™è¯¯", lexer->getLine(), lexer->getCol());
 			}
 		}
 	}
 }
 /*
-	<±äÁ¿ËµÃ÷> => VAR<±êÊ¶·û>{,<±êÊ¶·û>};
+	<å˜é‡è¯´æ˜> => VAR<æ ‡è¯†ç¬¦>{,<æ ‡è¯†ç¬¦>};
 */
 void Parser::VarDeclaration() {
-	// ´ËÊ±tokenÒÑ¾­Ö¸ÏòVAR
+	// æ­¤æ—¶tokenå·²ç»æŒ‡å‘VAR
 	getNextToken();
 	if (token.getType() != TokenType::IDENTIFIER) {
-		throw PL0Exception("±äÁ¿ËµÃ÷¸ñÊ½´íÎó", lexer->getLine(), lexer->getCol());
+		throw PL0Exception("å˜é‡è¯´æ˜æ ¼å¼é”™è¯¯", lexer->getLine(), lexer->getCol());
 	}
-	std::string sym_name = token.getValue();//sym_nameÎª±êÊ¶·ûÃû£¬´Ë´¦Éú³ÉÖĞ¼ä´úÂë
+	std::string sym_name = token.getValue();//sym_nameä¸ºæ ‡è¯†ç¬¦åï¼Œæ­¤å¤„ç”Ÿæˆä¸­é—´ä»£ç 
+	IdentifierTable[sym_name]="VAR";
 	getNextToken();
 	while (true) {
 		if (token.getType() == TokenType::COMMA) {
 			getNextToken();
 			if (token.getType() != TokenType::IDENTIFIER) {
-				throw PL0Exception("±äÁ¿ËµÃ÷¸ñÊ½´íÎó", lexer->getLine(), lexer->getCol());
+				throw PL0Exception("å˜é‡è¯´æ˜æ ¼å¼é”™è¯¯", lexer->getLine(), lexer->getCol());
 			}
-			std::string sym_name = token.getValue();//sym_nameÎª±êÊ¶·ûÃû£¬´Ë´¦Éú³ÉÖĞ¼ä´úÂë
+			std::string sym_name = token.getValue();//sym_nameä¸ºæ ‡è¯†ç¬¦åï¼Œæ­¤å¤„ç”Ÿæˆä¸­é—´ä»£ç 
+			IdentifierTable[sym_name]="VAR";
 			getNextToken();
 		}
 		else break;
 	}
 	if (token.getType() != TokenType::SEMICOLON) {
-		throw PL0Exception("³£Á¿ËµÃ÷¸ñÊ½´íÎó£¬È±ÉÙ·ÖºÅ", lexer->getLine(), lexer->getCol());
+		throw PL0Exception("å¸¸é‡è¯´æ˜æ ¼å¼é”™è¯¯ï¼Œç¼ºå°‘åˆ†å·", lexer->getLine(), lexer->getCol());
 	}
 }
 
 /*
-	<³£Á¿¶¨Òå> => <±êÊ¶·û>=<ÎŞ·ûºÅÕûÊı>
+	<å¸¸é‡å®šä¹‰> => <æ ‡è¯†ç¬¦>=<æ— ç¬¦å·æ•´æ•°>
 */
 void Parser::ConstDefinition() {
 	getNextToken();
 	if (token.getType() != TokenType::IDENTIFIER) {
-		throw PL0Exception("³£Á¿¶¨Òå¸ñÊ½´íÎó", lexer->getLine(), lexer->getCol());
+		throw PL0Exception("å¸¸é‡å®šä¹‰æ ¼å¼é”™è¯¯", lexer->getLine(), lexer->getCol());
 	}
 	std::string sym_name = token.getValue();
 	getNextToken();
-	if (token.getType() != TokenType::EQUAL) {
-		throw PL0Exception("³£Á¿¶¨Òå¸ñÊ½´íÎó", lexer->getLine() , lexer->getCol());
+	if (token.getType() != TokenType::ASSIGN) {
+		throw PL0Exception("å¸¸é‡å®šä¹‰æ ¼å¼é”™è¯¯", lexer->getLine() , lexer->getCol());
 	}
 	getNextToken();
+	if (token.getType() != TokenType::NUMBER) {
+		throw PL0Exception("å¸¸é‡å®šä¹‰æ ¼å¼é”™è¯¯", lexer->getLine(), lexer->getCol());
+	}
 	std::string sym_num = token.getValue();
 	int value = std::stoi(sym_num);
-	if (token.getType() != TokenType::NUMBER) {
-		throw PL0Exception("³£Á¿¶¨Òå¸ñÊ½´íÎó", lexer->getLine(), lexer->getCol());
-	}
-	// finish ÒÔÏÂÎªÓïÒå·ÖÎö¡¢ÖĞ¼ä´úÂëÉú³É£¬sym_name¡¢sym_num¿ÉÓÃ
-
+	// finish ä»¥ä¸‹ä¸ºè¯­ä¹‰åˆ†æã€ä¸­é—´ä»£ç ç”Ÿæˆï¼Œsym_nameã€sym_numå¯ç”¨
+	IdentifierTable[sym_name]="CONST";
 }
 
 /*
-	<³£Á¿ËµÃ÷> => CONST <³£Á¿¶¨Òå>{, <³£Á¿¶¨Òå>};
+	<å¸¸é‡è¯´æ˜> => CONST <å¸¸é‡å®šä¹‰>{, <å¸¸é‡å®šä¹‰>};
 */
 void Parser::ConstDeclaration() {
-	// ´ËÊ±tokenÒÑ¾­Ö¸ÏòCONST
+	// æ­¤æ—¶tokenå·²ç»æŒ‡å‘CONST
 	ConstDefinition();
 	getNextToken();
 	while (true) {
@@ -249,41 +312,45 @@ void Parser::ConstDeclaration() {
 		else break;
 	}
 	if (token.getType() != TokenType::SEMICOLON) {
-		throw PL0Exception("³£Á¿ËµÃ÷¸ñÊ½´íÎó£¬È±ÉÙ·ÖºÅ", lexer->getLine(), lexer->getCol());
+		throw PL0Exception("å¸¸é‡è¯´æ˜æ ¼å¼é”™è¯¯ï¼Œç¼ºå°‘åˆ†å·", lexer->getLine(), lexer->getCol());
 	}
-	// finish ÒÔÏÂÎªÓïÒå·ÖÎö¡¢ÖĞ¼ä´úÂëÉú³É
+	// finish ä»¥ä¸‹ä¸ºè¯­ä¹‰åˆ†æã€ä¸­é—´ä»£ç ç”Ÿæˆ
 }
 
 /*
-	<Óï¾ä> => <¸³ÖµÓï¾ä>|<Ìõ¼şÓï¾ä>|<Ñ­»·Óï¾ä>|<¸´ºÏÓï¾ä>|<¿ÕÓï¾ä>
+	<è¯­å¥> => <èµ‹å€¼è¯­å¥>|<æ¡ä»¶è¯­å¥>|<å¾ªç¯è¯­å¥>|<å¤åˆè¯­å¥>|<ç©ºè¯­å¥>
 */
 void Parser::Statement() {
-	// ´ËÊ±tokenÓ¦Ö¸ÏòÓï¾äµÚÒ»¸ö·ûºÅ
+	// æ­¤æ—¶tokenåº”æŒ‡å‘è¯­å¥ç¬¬ä¸€ä¸ªç¬¦å·
 	switch (token.getType()) {
 	case TokenType::IDENTIFIER:
+	//èµ‹å€¼è¯­å¥
 		AssignmentStat();
 		break;
 	case TokenType::IF:
+	//æ¡ä»¶è¯­å¥
 		ConditionalStat();
 		break;
 	case TokenType::WHILE:
+	//å¾ªç¯è¯­å¥
 		LoopStat();
 		break;
 	case TokenType::BEGIN:
+	//å¤åˆè¯­å¥
 		CompoundStat();
 		break;
 	case TokenType::SEMICOLON:
 	case TokenType::END:
-		//¸´ºÏÓï¾äÖĞµÄ¿ÕÓï¾ä£¬²»×÷´¦Àí
+		//å¤åˆè¯­å¥ä¸­çš„ç©ºè¯­å¥ï¼Œä¸ä½œå¤„ç†
 		break;
 	default:
-		throw PL0Exception("ÎŞ·¨Ê¶±ğÓï¾äÖÖÀà", lexer->getLine(), lexer->getCol());
+		throw PL0Exception("æ— æ³•è¯†åˆ«è¯­å¥ç§ç±»", lexer->getLine(), lexer->getCol());
 	}
 }
 /*
-	<·Ö³ÌĞò> => [<³£Á¿ËµÃ÷>][<±äÁ¿ËµÃ÷>]<Óï¾ä>
+	<åˆ†ç¨‹åº> => [<å¸¸é‡è¯´æ˜>][<å˜é‡è¯´æ˜>]<è¯­å¥>
 	FIRST = {CONST VAR IDENTIFIER IF WHILE BEGIN END_OF_FILE}
-	Óï¾ä°üÀ¨¿ÕÓï¾ä£¬END_OF_FILEÊÇ¿ÕÓï¾äµÄFOLLOW
+	è¯­å¥åŒ…æ‹¬ç©ºè¯­å¥ï¼ŒEND_OF_FILEæ˜¯ç©ºè¯­å¥çš„FOLLOW
 */
 void Parser::SubProgram() {
 	getNextToken();
@@ -296,15 +363,15 @@ void Parser::SubProgram() {
 		getNextToken();
 	}
 	if (token.getType() == TokenType::END_OF_FILE)
-		return;//·Ö³ÌĞòÖĞµÄ¿ÕÓï¾ä£¬Ö±½Ó·µ»Ø
+		return;//åˆ†ç¨‹åºä¸­çš„ç©ºè¯­å¥ï¼Œç›´æ¥è¿”å›
 	Statement();
 
-	// finish ÒÔÏÂÎªÓïÒå·ÖÎö¡¢ÖĞ¼ä´úÂëÉú³É
+	// finish ä»¥ä¸‹ä¸ºè¯­ä¹‰åˆ†æã€ä¸­é—´ä»£ç ç”Ÿæˆ
 
 }
 
 /*
-	<³ÌĞò> => <³ÌĞòÊ×²¿><·Ö³ÌĞò>
+	<ç¨‹åº> => <ç¨‹åºé¦–éƒ¨><åˆ†ç¨‹åº>
 	FIRST = {PROGRAM}
 */
 bool Parser::BeginParse() {
@@ -320,19 +387,19 @@ bool Parser::BeginParse() {
 }
 
 /*
-	<³ÌĞòÊ×²¿> => PROGRAM<±êÊ¶·û>
+	<ç¨‹åºé¦–éƒ¨> => PROGRAM<æ ‡è¯†ç¬¦>
 	FIRST = {PROGRAM}
 */
 void Parser::ProgramHead() {
 	getNextToken();
 	if (token.getType() != TokenType::PROGRAM) {
-		throw PL0Exception("³ÌĞòÊ×²¿È±ÉÙ¹Ø¼ü×ÖPROGRAM", lexer->getLine(), lexer->getCol());
+		throw PL0Exception("ç¨‹åºé¦–éƒ¨ç¼ºå°‘å…³é”®å­—PROGRAM", lexer->getLine(), lexer->getCol());
 	}
 	getNextToken();
 	if (token.getType() != TokenType::IDENTIFIER) {
-		throw PL0Exception("³ÌĞòÊ×²¿È±ÉÙ±êÊ¶·û" , lexer->getLine(), lexer->getCol());
+		throw PL0Exception("ç¨‹åºé¦–éƒ¨ç¼ºå°‘æ ‡è¯†ç¬¦" , lexer->getLine(), lexer->getCol());
 	}
-	// finish ÒÔÏÂÎªÓïÒå·ÖÎö¡¢ÖĞ¼ä´úÂëÉú³É
+	// finish ä»¥ä¸‹ä¸ºè¯­ä¹‰åˆ†æã€ä¸­é—´ä»£ç ç”Ÿæˆ
 	std::string program_name = token.getValue();
 
 }

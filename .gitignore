@@ -133,6 +133,7 @@ CTestTestfile.cmake
 x64/
 *.vcxproj.*
 *.sln
+.vscode/
 
 #PL0 Source and IR
 source/

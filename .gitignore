@@ -133,3 +133,7 @@ CTestTestfile.cmake
 x64/
 *.vcxproj.*
 *.sln
+
+#PL0 Source and IR
+source/
+result/

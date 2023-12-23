@@ -102,9 +102,7 @@ string Parser::Factor() {
 	}
 	else if (token.getType() == TokenType::NUMBER) {
 		// 识别为数字
-		auto temp = newtemp();
-		emit(":=",token.getValue(),"_",temp);
-		return temp;
+		return token.getValue();
 	}
 	else if (token.getType() == TokenType::LEFT_PAREN) {
 		// 识别为表达式
@@ -408,15 +406,15 @@ void Parser::ProgramHead() {
 
 }
 
-void Parser::Output(ofstream& fout)
+void Parser::Output(ofstream& IRout,ofstream & ITout)
 {
 	for(auto [name,kind]:IdentifierTable)
 	{
-		fout<<name<<" "<<kind<<endl;
+		ITout<<name<<" "<<kind<<endl;
 	}
 	for(int i=100;i<IR.size();i++)
 	{
 		auto [op,arg1,arg2,result]=IR[i];
-		fout<<i<<" "<<"("+op+","+arg1+","+arg2+","+result+")"<<endl;
+		IRout<<i<<" "<<"("+op+","+arg1+","+arg2+","+result+")"<<endl;
 	}
 }

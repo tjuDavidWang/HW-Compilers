@@ -15,7 +15,7 @@ public:
 	Parser(Lexer& lexer) {this->lexer = &lexer;}
 	~Parser() {}
 	bool BeginParse(); // 程序  启动语法分析
-	void Output(std::ofstream& fout);
+	void Output(std::ofstream& IRout,std::ofstream& ITout);
 	
 private:
 	Token token;// 当前符号

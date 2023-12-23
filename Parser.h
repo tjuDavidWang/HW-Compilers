@@ -20,6 +20,7 @@ public:
 private:
 	Token token;// 当前符号
 	Lexer* lexer=nullptr;// 词法分析器
+	bool end_flag=0;//指示是否发生复合语句嵌套，用于复合语句解析
 
 	void getNextToken() { token = lexer->getNextToken(); }
 

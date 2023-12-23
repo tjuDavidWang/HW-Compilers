@@ -216,7 +216,7 @@ void Parser::AssignmentStat() {
 */
 void Parser::CompoundStat() {
 	// 此时TOKEN指向BEGIN
-	token = lexer->getNextToken();;
+	token = lexer->getNextToken();
 	Statement();
 	while (true) {
 		if (token.getType() == TokenType::SEMICOLON) {
@@ -224,12 +224,19 @@ void Parser::CompoundStat() {
 			getNextToken();
 			Statement();
 		}
-		else if (token.getType() == TokenType::END) {
-			//空语句后END
-			break;
-		}
-
 		else {
+			if (token.getType() == TokenType::END) {
+				//空语句后END（分号后END），或者嵌套复合语句会执行到这里
+				if(end_flag==0){
+				//空语句后END（分号后END）
+					end_flag=1;
+					break;
+				}
+				else if(end_flag==1){
+					//嵌套复合语句
+					end_flag=0;
+				}
+			}
 			//正常语句结束
 			getNextToken();
 			if (token.getType() == TokenType::SEMICOLON) {
@@ -239,6 +246,7 @@ void Parser::CompoundStat() {
 			}
 			else if (token.getType() == TokenType::END) {
 				//正常语句后END
+				end_flag=1;
 				break;
 			}
 			else {

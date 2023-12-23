@@ -1,5 +1,5 @@
 PROGRAM add
-CONST a=1 ,b=2;
+CONST a:=1 ,b:=2;
 VAR x,y;
 BEGIN
     x:=a+b*a*b+b;

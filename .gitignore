@@ -131,4 +131,5 @@ CTestTestfile.cmake
 
 .vs/
 x64/
-
+*.vcxproj.*
+*.sln

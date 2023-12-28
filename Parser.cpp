@@ -416,9 +416,10 @@ void Parser::ProgramHead() {
 
 void Parser::Output(ofstream& IRout,ofstream & ITout)
 {
+	ITout<<"Name,Type"<<endl;
 	for(auto [name,kind]:IdentifierTable)
 	{
-		ITout<<name<<" "<<kind<<endl;
+		ITout<<name<<","<<kind<<endl;
 	}
 	for(int i=100;i<IR.size();i++)
 	{

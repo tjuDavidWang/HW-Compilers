@@ -138,3 +138,4 @@ x64/
 #PL0 Source and IR
 source/
 result/
+./compiler

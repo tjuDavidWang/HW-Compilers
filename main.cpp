@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     // 参数解析
     std::string inputFile;
     std::string IRFile = "IR.txt";
-    std::string ITFile = "IT.txt";
+    std::string ITFile = "IT.csv";
     int error = -1;
     for (int i = 1; i < argc;)
     {

@@ -15,6 +15,7 @@
 
 
 
+
 Token Lexer::getNextToken() {
     // 循环遍历源代码中的每个字符
     while (position < source.length()) {
@@ -92,7 +93,7 @@ Token Lexer::getNextToken() {
 
         default:
             // 如果状态未知，抛出异常
-            throw PL0Exception("词法分析器处于未知状态");
+            throw PL0Exception("词法分析器处于未知状态",getLine(),getCol());
         }
     }
 
@@ -189,13 +190,13 @@ Token Lexer::handleSymbol() {
             return Token(ASSIGN, ":=");
         }
         else {
-            throw PL0Exception("非法输入 ':',你要输入 ':='？");
+            throw PL0Exception("非法输入 ':',你要输入 ':='",getLine(),getCol());
         }
     case '(': return Token(LEFT_PAREN, "(");
     case ')': return Token(RIGHT_PAREN, ")");
     case ';': return Token(SEMICOLON, ";");
     case ',': return Token(COMMA, ",");
     default:
-        throw PL0Exception("非法字符'" + std::string(1, current)+"'");
+        throw PL0Exception("非法字符'" + std::string(1, current)+"'",getLine(),getCol());
     }
 }

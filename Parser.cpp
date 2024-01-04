@@ -72,6 +72,7 @@ void Parser::ConditionalStat() {
 	<循环语句> => WHILE <条件> DO <语句>
 */
 void Parser::LoopStat() {
+	auto to_jump = IR.size();
 	auto [op,arg1,arg2] = Condition();
 	auto to_refill1 = IR.size();
 	emit("j"+op,arg1,arg2,"M");
@@ -81,7 +82,7 @@ void Parser::LoopStat() {
 		throw PL0Exception("循环语句格式错误", lexer->getLine(), lexer->getCol());
 	}
 	getNextToken();
-	IR[to_refill1][3]=to_string(IR.size());
+	IR[to_refill1][3]=to_string(to_jump);
 	Statement();
 	emit("j","_","_",to_string(to_refill1));
 	IR[to_refill2][3] = to_string(IR.size());

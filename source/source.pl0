@@ -1,0 +1,12 @@
+PROGRAM add
+CONST a:=1 ,b:=2;
+VAR x,y;
+BEGIN
+    x:=a+b*a*b+b;
+    y:=2;
+    WHILE y-(a+1)+1<(x+1)*y*x DO x:=(x+1)*y*x;;
+    IF y-(a+1)+1>(x+1)*y*x THEN y:=y-(a+1)+1;
+    BEGIN
+    END;
+    y:=y+x
+END

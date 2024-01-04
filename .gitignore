@@ -136,6 +136,5 @@ x64/
 .vscode/
 
 #PL0 Source and IR
-source/
 result/
 ./compiler

@@ -12,6 +12,11 @@ HW-Compiler > ls
 Lexer.cpp  Lexer.h  main.cpp  Parser.cpp  Parser.h  PL0Exception.h  README.md  source
 HW-Compiler > g++ *.cpp -o compiler
 ~~~
+在Windows中可以采用如下的方式构建：
+~~~shell
+g++ main.cpp Parser.cpp Lexer.cpp -o compiler -std=c++17
+compiler source/source.pl0 -oIR IRfile2 -oIT ITfile2
+~~~
 ## 使用方法
 Usage: compiler \<InputSourceFile> -oIR \<IRFile> -oIT \<ITFile>
 

@@ -82,9 +82,9 @@ void Parser::LoopStat() {
 		throw PL0Exception("循环语句格式错误", lexer->getLine(), lexer->getCol());
 	}
 	getNextToken();
-	IR[to_refill1][3]=to_string(to_jump);
+	IR[to_refill1][3]=to_string(IR.size());
 	Statement();
-	emit("j","_","_",to_string(to_refill1));
+	emit("j","_","_",to_string(to_jump));
 	IR[to_refill2][3] = to_string(IR.size());
 }
 

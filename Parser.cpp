@@ -4,7 +4,7 @@
 #include<map>
 #include<vector>
 #include<cstdlib>
-map<string,string> IdentifierTable;
+map<string,pair<string,string>> IdentifierTable;
 map<string,string> TempTable;
 int tempCount = 0;
 vector<array<string,4>> IR(100);
@@ -266,7 +266,7 @@ void Parser::VarDeclaration() {
 		throw PL0Exception("变量说明格式错误", lexer->getLine(), lexer->getCol());
 	}
 	std::string sym_name = token.getValue();//sym_name为标识符名，此处生成中间代码
-	IdentifierTable[sym_name]="VAR";
+	IdentifierTable[sym_name]={"VAR","VAR"};
 	getNextToken();
 	while (true) {
 		if (token.getType() == TokenType::COMMA) {
@@ -275,7 +275,7 @@ void Parser::VarDeclaration() {
 				throw PL0Exception("变量说明格式错误", lexer->getLine(), lexer->getCol());
 			}
 			std::string sym_name = token.getValue();//sym_name为标识符名，此处生成中间代码
-			IdentifierTable[sym_name]="VAR";
+			IdentifierTable[sym_name]={"VAR","VAR"};
 			getNextToken();
 		}
 		else break;
@@ -305,7 +305,7 @@ void Parser::ConstDefinition() {
 	std::string sym_num = token.getValue();
 	int value = std::stoi(sym_num);
 	// finish 以下为语义分析、中间代码生成，sym_name、sym_num可用
-	IdentifierTable[sym_name]="CONST";
+	IdentifierTable[sym_name]={"CONST",sym_num};
 }
 
 /*
@@ -417,10 +417,10 @@ void Parser::ProgramHead() {
 
 void Parser::Output(ofstream& IRout,ofstream & ITout)
 {
-	ITout<<"Name,Type"<<endl;
+	ITout<<"Name,Type,Value"<<endl;
 	for(auto [name,kind]:IdentifierTable)
 	{
-		ITout<<name<<","<<kind<<endl;
+		ITout<<name<<","<<kind.first<<","<<kind.second<<endl;
 	}
 	for(int i=100;i<IR.size();i++)
 	{
